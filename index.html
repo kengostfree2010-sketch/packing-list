@@ -272,6 +272,16 @@
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
+  .item .opt {
+    flex: none;
+    align-self: center;
+    font-size: 11px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
   .item .note { display: block; font-size: 12px; color: var(--ink-soft); line-height: 1.5; margin-top: 2px; }
   .item.checked .name > span:first-child { color: var(--done); text-decoration: line-through; text-decoration-color: var(--done); }
   .hide-done li.is-done { display: none; }
@@ -504,6 +514,84 @@
     if (st === 'outdoor') acc.push({ name: 'バックパック / デイパック', qty: 1, note: '行動用。レインカバーも' });
     else acc.push({ name: 'サコッシュ / 小さめのショルダー', qty: 1, note: '街歩きは身軽に' });
 
+    // ---------- optional extras（あると便利な服） ----------
+    function opt(list, name, note) {
+      for (var i = 0; i < list.length; i++) if (list[i].name === name) return;
+      list.push({ name: name, short: '', qty: 1, note: note, opt: true });
+    }
+    var spring = s === 'spring', autumn = s === 'autumn';
+    if (st === 'city') {
+      // tops
+      if (warm) {
+        opt(tops, 'リネンシャツ', '涼しく見えて、シワも味になる素材');
+        opt(tops, 'バンドカラーシャツ', '襟なしで抜け感。1枚でも羽織りでも');
+        opt(tops, 'タンクトップ / ノースリーブ', 'シャツの下に。暑い日は1枚で');
+      }
+      if (mild) {
+        opt(tops, 'スウェット / トレーナー', '無地のグレーならきれいめにも合う');
+        opt(tops, 'カーディガン', '肩掛けや羽織りで温度調整');
+        opt(tops, 'ポロシャツ（長袖）', 'ニットポロならレストランにも');
+      }
+      if (cold) {
+        opt(tops, 'タートルネック', 'ジャケットの下に。首元が暖かい');
+        opt(tops, 'スウェット / パーカー', '宿でのリラックスにも');
+        opt(tops, 'カーディガン', 'コートの下の中間着に');
+      }
+      // bottoms
+      if (warm) {
+        opt(bottoms, 'リネン / イージーパンツ', '冷房の効いた店や夜に');
+        opt(bottoms, 'ワイドショーツ', 'リラックス感のある丈で');
+      } else {
+        opt(bottoms, 'ワイドパンツ', 'シルエットを変えて写真に変化を');
+        opt(bottoms, 'カーゴパンツ', 'ポケットが多く、移動日に便利');
+        if (cold) opt(bottoms, 'ウールスラックス', '見た目も暖かく、夜の外食に');
+      }
+      // outer
+      if (spring) opt(outer, 'トレンチコート', '雨の日も様になる。ベージュが定番');
+      if (spring || autumn) {
+        opt(outer, 'マウンテンパーカー', '撥水で天気の急変に強い');
+        opt(outer, 'デニムジャケット / シャツジャケット', 'カジュアルな日の羽織りに');
+      }
+      if (autumn || cold) opt(outer, 'ダウンベスト', '軽くて畳める。重ね着の調整役');
+      if (cold) opt(outer, 'ボアフリース / フリースジャケット', '街でも使えるきれいめなもの');
+      // shoes
+      if (warm) opt(shoes, 'レザーサンダル', 'きれいめなショーツとも相性◎');
+      if (mild) opt(shoes, 'スエードスニーカー', '秋冬らしい足元に');
+      if (autumn || cold) opt(shoes, 'チャッカブーツ / ワークブーツ', '雨の日にも強い');
+      // accessories
+      if (warm || spring) opt(acc, 'キャップ / バケットハット', '日差し対策とコーデのアクセントに');
+      if (!warm) opt(acc, 'ストール', '機内のブランケット代わりにも');
+      opt(acc, 'トートバッグ（折りたためるもの）', 'サブバッグ・買い物用に');
+      opt(acc, 'ネックレス / リング', 'シンプルなコーデのアクセントに');
+    } else if (st === 'resort') {
+      opt(tops, 'ポロシャツ', 'ホテルのレストランやゴルフに');
+      if (!cold) {
+        opt(tops, '開襟シャツ / アロハシャツ', '柄物1枚で旅の写真が映える');
+        opt(tops, 'タンクトップ', 'ビーチやプールサイドで');
+      }
+      opt(tops, 'ラッシュガード', '日焼け・クラゲ対策に');
+      opt(bottoms, 'ワイドショーツ / バギーショーツ', 'リラックス感のある1本');
+      opt(bottoms, 'リネンワイドパンツ', 'ディナーで少しきれいめに');
+      opt(outer, 'シャツジャケット / サマージャケット', 'ドレスコードのあるディナー用');
+      opt(shoes, 'デッキシューズ / エスパドリーユ', 'リゾートらしいきれいめ靴');
+      if (warm) opt(shoes, 'マリンシューズ', '岩場・シュノーケリング用');
+      opt(acc, 'ストローハット', 'リゾートの定番。潰れにくいものを');
+      opt(acc, 'ビーチバッグ / トートバッグ', '濡れたものを入れられる素材');
+      opt(acc, 'ブレスレット / ネックレス', '日焼けした肌に映える');
+    } else {
+      opt(tops, 'ロングスリーブTシャツ（速乾）', '移動日や宿で');
+      if (!cold) opt(tops, 'フランネルシャツ / ネルシャツ', 'キャンプ場や焚き火に似合う');
+      if (cold) opt(tops, 'フリースプルオーバー', '中間着を2枚にして調整');
+      if (warm) opt(bottoms, 'トレイルショーツ', '暑い日の行動用。タイツと重ねても');
+      opt(bottoms, 'カーゴパンツ / クライミングパンツ', '街と山の兼用に');
+      if (!cold) opt(outer, 'ダウンベスト / 中綿ベスト', '朝晩の冷え込みに');
+      if (cold) opt(outer, 'ソフトシェルジャケット', '雪の日の行動着に');
+      if (warm) opt(shoes, 'ウォーターシューズ', '沢歩き・川遊び用');
+      opt(shoes, 'アプローチシューズ / トレランシューズ', '軽いハイキングや移動日に');
+      opt(acc, 'サコッシュ', 'スマホや地図をすぐ取り出せる');
+      if (!warm) opt(acc, 'ウールキャップ / バケットハット', '防寒とアクセントに');
+    }
+
     // ---------- non-clothing ----------
     var valuables = [
       { name: '財布', note: '' },
@@ -669,7 +757,7 @@
       html += '<li' + (checked ? ' class="is-done"' : '') + '><label class="item' + (checked ? ' checked' : '') + '">' +
         '<input type="checkbox" data-id="' + esc(id) + '"' + (checked ? ' checked' : '') + '>' +
         '<span class="body"><span class="name"><span>' + esc(it.name) + '</span>' +
-        (it.qty ? '<span class="qty">× ' + it.qty + '</span>' : '') + '</span>' +
+        (it.opt ? '<span class="opt">あると便利</span>' : (it.qty ? '<span class="qty">× ' + it.qty + '</span>' : '')) + '</span>' +
         (it.note ? '<span class="note">' + esc(it.note) + '</span>' : '') +
         '</span></label></li>';
     });
