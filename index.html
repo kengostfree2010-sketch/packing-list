@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="行き先・泊数・季節・旅のスタイルから、着回し前提のメンズ旅行パッキングリストを作成します。">
+<meta name="theme-color" content="#1f2a36">
+<title>メンズ旅支度リスト</title>
+<style>
+  :root {
+    --bg: #f3f0ea;
+    --surface: #fbfaf7;
+    --surface-2: #ece7de;
+    --ink: #1f2a36;
+    --ink-soft: #5a6470;
+    --line: #d9d2c5;
+    --accent: #8a6a3f;
+    --accent-soft: #e9dfcf;
+    --on-accent: #fbfaf7;
+    --done: #9aa3ad;
+    --header: #1f2a36;
+    --on-header: #efe9df;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(31, 42, 54, .06), 0 4px 16px rgba(31, 42, 54, .05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #15191f;
+      --surface: #1d232b;
+      --surface-2: #262d36;
+      --ink: #e8e3da;
+      --ink-soft: #a3a9b1;
+      --line: #333b46;
+      --accent: #c8a676;
+      --accent-soft: #3a3226;
+      --on-accent: #15191f;
+      --done: #6b737d;
+      --header: #0f1318;
+      --on-header: #e8e3da;
+      --shadow: none;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", "Meiryo", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ---------- Header ---------- */
+  header {
+    background: var(--header);
+    color: var(--on-header);
+    padding: calc(28px + env(safe-area-inset-top)) 20px 26px;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; }
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: .28em;
+    color: var(--accent);
+    margin: 0 0 6px;
+  }
+  @media (prefers-color-scheme: light) { header .eyebrow { color: #c8a676; } }
+  h1 {
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+    font-weight: 600;
+    font-size: 26px;
+    letter-spacing: .06em;
+    margin: 0;
+  }
+  header p.lead {
+    margin: 8px 0 0;
+    font-size: 13px;
+    opacity: .75;
+  }
+
+  main { padding: 20px 16px 120px; }
+
+  /* ---------- Card ---------- */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 18px 16px;
+    margin-bottom: 18px;
+  }
+  .card h2 {
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    margin: 0 0 4px;
+  }
+  .card .sub { font-size: 12px; color: var(--ink-soft); margin: 0 0 12px; }
+
+  /* ---------- Form ---------- */
+  fieldset { border: 0; padding: 0; margin: 0 0 18px; }
+  fieldset:last-child { margin-bottom: 0; }
+  legend {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .12em;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+    padding: 0;
+  }
+  .seg { display: grid; gap: 8px; }
+  .seg.c2 { grid-template-columns: repeat(2, 1fr); }
+  .seg.c3 { grid-template-columns: repeat(3, 1fr); }
+  .seg.c4 { grid-template-columns: repeat(4, 1fr); }
+  .seg.c7 { grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .seg input { position: absolute; opacity: 0; pointer-events: none; }
+  .seg label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 6px 4px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--bg);
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+    transition: background .15s, color .15s, border-color .15s;
+    text-align: center;
+  }
+  .seg.c7 label { font-size: 15px; font-variant-numeric: tabular-nums; padding: 6px 0; }
+  .seg input:checked + label {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--bg);
+    font-weight: 600;
+  }
+  .seg input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .nights-note { font-size: 12px; color: var(--ink-soft); margin-top: 6px; }
+
+  /* ---------- Summary / progress ---------- */
+  .summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 12px;
+  }
+  .tag {
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--ink);
+  }
+  .progress {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--bg);
+    padding: 10px 0 12px;
+    margin: 0 0 6px;
+  }
+  .progress-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  .progress-row strong { color: var(--ink); font-size: 15px; font-variant-numeric: tabular-nums; }
+  .bar { height: 6px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+  .bar span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--accent);
+    border-radius: 999px;
+    transition: width .25s ease;
+  }
+  .tools { display: flex; gap: 8px; margin-bottom: 4px; }
+  .btn {
+    flex: 1;
+    min-height: 40px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    border-radius: 10px;
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .btn[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+  /* ---------- Section ---------- */
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    margin: 28px 0 12px;
+  }
+  .section-title::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+  .lead-note { font-size: 12px; color: var(--ink-soft); margin: -4px 0 12px; }
+  .group { padding: 6px 0 4px; }
+  .group-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 10px 16px 6px;
+  }
+  .group-head h3 {
+    margin: 0;
+    font-size: 14px;
+    letter-spacing: .1em;
+    color: var(--accent);
+  }
+  .group-head .count { font-size: 12px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  .group.card { padding: 0; overflow: hidden; }
+
+  ul.items { list-style: none; margin: 0; padding: 0; }
+  ul.items li + li { border-top: 1px solid var(--line); }
+  .item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    min-height: 52px;
+  }
+  .item input {
+    appearance: none;
+    -webkit-appearance: none;
+    flex: 0 0 22px;
+    width: 22px;
+    height: 22px;
+    margin: 1px 0 0;
+    border: 1.5px solid var(--ink-soft);
+    border-radius: 6px;
+    background: var(--surface);
+    display: grid;
+    place-content: center;
+    cursor: pointer;
+    transition: background .15s, border-color .15s;
+  }
+  .item input::before {
+    content: "";
+    width: 11px;
+    height: 6px;
+    border-left: 2px solid var(--on-accent);
+    border-bottom: 2px solid var(--on-accent);
+    transform: rotate(-45deg) translate(1px, -1px) scale(0);
+    transition: transform .12s ease;
+  }
+  .item input:checked { background: var(--accent); border-color: var(--accent); }
+  .item input:checked::before { transform: rotate(-45deg) translate(1px, -1px) scale(1); }
+  .item input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .item .body { flex: 1; min-width: 0; }
+  .item .name { display: flex; justify-content: space-between; gap: 8px; }
+  .item .qty {
+    flex: none;
+    font-size: 13px;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .item .note { display: block; font-size: 12px; color: var(--ink-soft); line-height: 1.5; margin-top: 2px; }
+  .item.checked .name > span:first-child { color: var(--done); text-decoration: line-through; text-decoration-color: var(--done); }
+  .hide-done li.is-done { display: none; }
+  .hide-done .group.all-done { display: none; }
+
+  /* ---------- Rotation ---------- */
+  .rotation { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .rotation th, .rotation td { padding: 8px 6px; text-align: left; border-top: 1px solid var(--line); vertical-align: top; }
+  .rotation thead th { border-top: 0; font-size: 11px; letter-spacing: .1em; color: var(--ink-soft); font-weight: 600; }
+  .rotation td:first-child { white-space: nowrap; color: var(--accent); font-weight: 600; width: 3.5em; }
+  .rotation .wash { display: inline-block; font-size: 11px; padding: 0 6px; border-radius: 4px; background: var(--accent-soft); margin-left: 4px; }
+
+  .tips { margin: 0; padding-left: 1.2em; font-size: 14px; }
+  .tips li + li { margin-top: 6px; }
+  .palette { display: flex; gap: 8px; margin: 12px 0 2px; flex-wrap: wrap; }
+  .swatch { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-soft); }
+  .swatch i { width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--line); display: inline-block; }
+
+  footer { text-align: center; font-size: 11px; color: var(--ink-soft); padding: 0 16px 40px; }
+
+  @media (min-width: 560px) {
+    h1 { font-size: 30px; }
+    .seg.c7 { gap: 8px; }
+  }
+  @media print {
+    header, form, .tools, footer { display: none; }
+    .progress { position: static; }
+    body { background: #fff; }
+    .card { box-shadow: none; break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <p class="eyebrow">PACKING LIST FOR MEN</p>
+    <h1>旅支度リスト</h1>
+    <p class="lead">条件を選ぶだけで、着回し前提の持ち物リストをつくります。</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <form id="form" class="card" autocomplete="off">
+    <fieldset>
+      <legend>行き先</legend>
+      <div class="seg c2">
+        <input type="radio" name="dest" id="d-dom" value="domestic" checked><label for="d-dom">国内</label>
+        <input type="radio" name="dest" id="d-ovs" value="overseas"><label for="d-ovs">海外</label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>泊数</legend>
+      <div class="seg c7" id="nights"></div>
+      <div class="nights-note" id="nightsNote"></div>
+    </fieldset>
+    <fieldset>
+      <legend>季節</legend>
+      <div class="seg c4">
+        <input type="radio" name="season" id="s-spr" value="spring" checked><label for="s-spr">春</label>
+        <input type="radio" name="season" id="s-sum" value="summer"><label for="s-sum">夏</label>
+        <input type="radio" name="season" id="s-aut" value="autumn"><label for="s-aut">秋</label>
+        <input type="radio" name="season" id="s-win" value="winter"><label for="s-win">冬</label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>旅のスタイル</legend>
+      <div class="seg c3">
+        <input type="radio" name="style" id="t-city" value="city" checked><label for="t-city">街歩き</label>
+        <input type="radio" name="style" id="t-resort" value="resort"><label for="t-resort">リゾート</label>
+        <input type="radio" name="style" id="t-out" value="outdoor"><label for="t-out">アウトドア</label>
+      </div>
+    </fieldset>
+  </form>
+
+  <div id="result"></div>
+</main>
+
+<footer>データはこの端末のブラウザ内にのみ保存されます。</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  var LABEL = {
+    dest: { domestic: '国内', overseas: '海外' },
+    season: { spring: '春', summer: '夏', autumn: '秋', winter: '冬' },
+    style: { city: '街歩き', resort: 'リゾート', outdoor: 'アウトドア' }
+  };
+
+  // ---------- storage (fails silently in private mode etc.) ----------
+  var store = {
+    get: function (k, fallback) {
+      try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : fallback; }
+      catch (e) { return fallback; }
+    },
+    set: function (k, v) {
+      try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* ignore */ }
+    }
+  };
+
+  // ---------- nights selector ----------
+  var nightsBox = document.getElementById('nights');
+  for (var n = 1; n <= 7; n++) {
+    nightsBox.insertAdjacentHTML('beforeend',
+      '<input type="radio" name="nights" id="n-' + n + '" value="' + n + '"' + (n === 2 ? ' checked' : '') + '>' +
+      '<label for="n-' + n + '">' + n + '</label>');
+  }
+
+  // ---------- helpers ----------
+  function split(total, parts) {
+    // Distribute `total` into `parts` buckets, front-loaded. e.g. split(5, 2) -> [3, 2]
+    var out = [], base = Math.floor(total / parts), rest = total % parts;
+    for (var i = 0; i < parts; i++) out.push(base + (i < rest ? 1 : 0));
+    return out;
+  }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  // ---------- list generation ----------
+  function build(c) {
+    var nights = c.nights, days = nights + 1;
+    var s = c.season, st = c.style, ovs = c.dest === 'overseas';
+    var warm = s === 'summer', cold = s === 'winter', mild = s === 'spring' || s === 'autumn';
+    var laundry = nights >= 4;
+
+    // 着回し前提の枚数（着用分を含む）
+    var topsN = nights <= 2 ? nights + 1 : nights === 3 ? 3 : nights <= 6 ? 4 : 5;
+    var bottomsN = nights <= 2 ? 1 : nights <= 5 ? 2 : 3;
+    var innerN = Math.min(days, 5);
+
+    var tops = [], bottoms = [], outer = [], shoes = [], acc = [];
+    // tops: [name, short label for rotation, note]
+    var topDefs;
+    if (st === 'city') {
+      topDefs = warm
+        ? [['無地Tシャツ（白・ネイビー）', 'Tシャツ', '1枚で様になる厚手のものを'], ['半袖シャツ / ポロシャツ', 'シャツ', '食事や美術館など少しきれいめな場面に']]
+        : cold
+        ? [['長袖カットソー', 'カットソー', 'ニットの下にも1枚でも'], ['ニット（クルーネック）', 'ニット', 'グレーかネイビーが万能']]
+        : [['長袖カットソー / ロンT', 'カットソー', '白・グレーなど無地'], ['オックスフォードシャツ', 'シャツ', '羽織りにも使える']];
+    } else if (st === 'resort') {
+      topDefs = cold
+        ? [['Tシャツ', 'Tシャツ', '現地が暖かい前提。寒冷地なら街歩きを選択'], ['リネンシャツ（長袖）', 'リネンシャツ', '袖をまくって温度調整']]
+        : [['Tシャツ', 'Tシャツ', '汗をかくので多めでもOK'], ['リネンシャツ', 'リネンシャツ', 'ディナーや羽織りに。白かサックス']];
+    } else {
+      topDefs = cold
+        ? [['メリノウール ベースレイヤー', 'ベースレイヤー', '汗冷えしにくく匂いにも強い'], ['長袖速乾シャツ', '速乾シャツ', '重ね着の中間に']]
+        : warm
+        ? [['速乾Tシャツ', '速乾T', '綿は汗冷えするので避ける'], ['長袖速乾シャツ（UVカット）', '速乾シャツ', '日差し・虫よけ対策']]
+        : [['速乾Tシャツ', '速乾T', '綿は汗冷えするので避ける'], ['長袖ベースレイヤー', 'ベースレイヤー', '朝晩の冷え込み対策']];
+    }
+    var tq = split(topsN, 2);
+    topDefs.forEach(function (d, i) {
+      if (tq[i] > 0) tops.push({ name: d[0], short: d[1], qty: tq[i], note: d[2] });
+    });
+    if (st === 'city' && s === 'autumn') tops.push({ name: '薄手ニット', short: '', qty: 1, note: 'シャツの上に重ねて雰囲気を変える' });
+    if (st === 'resort' && !warm) tops.push({ name: '長袖カットソー', short: '', qty: 1, note: '朝晩・機内の冷え対策' });
+
+    // bottoms
+    var botDefs;
+    if (st === 'city') {
+      botDefs = warm
+        ? [['テーパードチノ（ベージュ）', 'チノ', '移動日に着用'], ['ショーツ（膝上丈・無地）', 'ショーツ', 'きれいめ素材を選ぶ']]
+        : [['テーパードスラックス / チノ', 'スラックス', 'センタープレスがあると上品'], ['濃紺デニム', 'デニム', 'どのトップスとも合わせやすい']];
+    } else if (st === 'resort') {
+      botDefs = [['ショーツ', 'ショーツ', '水陸両用タイプも便利'], ['リネン / イージーパンツ', 'イージーパンツ', 'ディナー・冷房対策に1本']];
+    } else {
+      botDefs = [['トレッキングパンツ（ストレッチ）', 'トレッキングパンツ', '移動日も着用'], ['イージーパンツ', 'イージーパンツ', '宿での着替え・移動用']];
+    }
+    var bq = split(bottomsN, 2);
+    if (st === 'resort' && bottomsN === 1) bq = [1, 1];
+    botDefs.forEach(function (d, i) {
+      if (bq[i] > 0) bottoms.push({ name: d[0], short: d[1], qty: bq[i], note: d[2] });
+    });
+    if (st === 'resort' || (st === 'city' && warm && ovs)) {
+      bottoms.push({ name: '水着', short: '', qty: st === 'resort' && nights >= 3 ? 2 : 1, note: st === 'resort' ? '乾きにくいので連泊なら2枚' : 'ホテルのプール用' });
+    }
+    if (st === 'outdoor' && cold) bottoms.push({ name: 'タイツ（保温インナー）', short: '', qty: 1, note: 'パンツの下に' });
+
+    // outer
+    if (st === 'city') {
+      if (s === 'spring') outer.push({ name: 'ライトジャケット / ステンカラーコート', qty: 1, note: 'ネイビーかベージュ。移動日に着用' });
+      if (warm) outer.push({ name: '薄手のシャツジャケット', qty: 1, note: '冷房・日よけ対策。なくても可' });
+      if (s === 'autumn') outer.push({ name: 'ブルゾン / テーラードジャケット', qty: 1, note: '移動日に着用' });
+      if (cold) {
+        outer.push({ name: 'ウールコート / ダウンジャケット', qty: 1, note: '移動日に着用' });
+        outer.push({ name: 'インナーダウン', qty: 1, note: 'コートの下に。室内では脱いで調整' });
+      }
+    } else if (st === 'resort') {
+      outer.push({ name: cold ? 'ライトダウン' : '薄手カーディガン / パーカー', qty: 1, note: cold ? '出発地の寒さ対策。現地ではバッグに' : '機内・冷房対策' });
+    } else {
+      outer.push({ name: 'レインウェア（上下）', qty: 1, note: '防風着を兼ねる。晴れ予報でも必携' });
+      outer.push({ name: warm ? '薄手フリース' : 'フリース', qty: 1, note: warm ? '標高が高い場所や朝晩に' : '行動中の保温着' });
+      if (cold) outer.push({ name: 'ダウンジャケット', qty: 1, note: '休憩時・夜間の防寒' });
+      else if (mild) outer.push({ name: 'ウィンドシェル', qty: 1, note: '軽量でポケットに入るもの' });
+    }
+
+    // shoes
+    if (st === 'city') {
+      shoes.push({ name: cold ? 'レザースニーカー / サイドゴアブーツ' : 'レザースニーカー', qty: 1, note: '歩きやすく、きれいめにも合う。移動日に着用' });
+      if (nights >= 3) shoes.push({ name: 'ローファー / きれいめシューズ', qty: 1, note: 'レストラン用。なくても可' });
+    } else if (st === 'resort') {
+      shoes.push({ name: 'スニーカー / スリッポン', qty: 1, note: '移動日に着用' });
+      shoes.push({ name: 'サンダル / ビーチサンダル', qty: 1, note: 'ビーチ・プールサイド用' });
+    } else {
+      shoes.push({ name: 'トレッキングシューズ', qty: 1, note: '履き慣らしたもの。移動日に着用' });
+      shoes.push({ name: '軽量サンダル / スリッポン', qty: 1, note: '宿・車内でのリラックス用' });
+    }
+
+    // accessories
+    acc.push({ name: '下着', qty: innerN, note: laundry ? '途中で1回洗濯する前提' : '' });
+    acc.push({ name: st === 'outdoor' ? 'ウールソックス' : '靴下', qty: innerN, note: st === 'outdoor' ? '厚手・クッション性のあるもの' : '' });
+    if (cold || (st === 'outdoor' && !warm)) acc.push({ name: '機能性インナー（ヒートテック等）', qty: Math.min(days, 3), note: '' });
+    acc.push({ name: 'ルームウェア / パジャマ', qty: 1, note: '宿の備え付けを事前に確認' });
+    if (st === 'city') {
+      acc.push({ name: 'ベルト', qty: 1, note: '靴の色と合わせる' });
+      acc.push({ name: '腕時計', qty: 1, note: '' });
+    }
+    if (warm || st !== 'city' || s === 'spring') acc.push({ name: 'サングラス', qty: 1, note: '' });
+    if (st === 'resort') acc.push({ name: 'ハット / キャップ', qty: 1, note: '日差し対策' });
+    if (st === 'outdoor') acc.push({ name: cold ? 'ニット帽' : 'キャップ / ハット', qty: 1, note: '' });
+    if (st === 'outdoor' && !cold) acc.push({ name: 'ネックゲイター', qty: 1, note: '日焼け・防寒・防塵' });
+    if (cold) {
+      if (st !== 'resort') acc.push({ name: st === 'outdoor' ? 'ネックウォーマー' : 'マフラー', qty: 1, note: '' });
+      if (st !== 'resort') acc.push({ name: '手袋', qty: 1, note: st === 'outdoor' ? '防水性のあるもの' : 'スマホ対応だと便利' });
+      if (st === 'city') acc.push({ name: 'ニット帽', qty: 1, note: '寒冷地なら' });
+    }
+    if (st === 'outdoor') acc.push({ name: 'バックパック / デイパック', qty: 1, note: '行動用。レインカバーも' });
+    else acc.push({ name: 'サコッシュ / 小さめのショルダー', qty: 1, note: '街歩きは身軽に' });
+
+    // ---------- non-clothing ----------
+    var valuables = [
+      { name: '財布', note: '' },
+      { name: 'スマートフォン', note: '' },
+      ovs ? { name: 'パスポート', note: '残存有効期間を確認' } : { name: '身分証（運転免許証など）', note: '' },
+      { name: 'クレジットカード', note: ovs ? '2枚以上・別ブランドで' : '' },
+      { name: '現金', note: ovs ? '日本円（帰りの交通費）＋現地通貨を少額' : '' },
+      { name: '予約確認（宿・交通）', note: 'スクリーンショットで保存しておく' }
+    ];
+    if (!ovs) valuables.push({ name: '交通系ICカード', note: '' });
+    if (ovs) {
+      valuables.push({ name: '海外旅行保険の証書', note: 'クレカ付帯の条件も確認' });
+      valuables.push({ name: 'パスポートのコピー / 写真', note: 'スマホにも保存' });
+      valuables.push({ name: 'ビザ・電子渡航認証（ESTA等）', note: '行き先によって必要' });
+    }
+    if (st === 'city' || (st === 'outdoor' && !ovs)) valuables.push({ name: '運転免許証' + (ovs ? '・国際免許証' : ''), note: 'レンタカーを使う場合' });
+
+    var gadgets = [
+      { name: '充電器・ケーブル', note: '' },
+      { name: 'モバイルバッテリー', note: '機内は預け入れ不可・手荷物へ' },
+      { name: 'イヤホン', note: '' }
+    ];
+    if (ovs) {
+      gadgets.push({ name: '変換プラグ', note: '行き先のプラグ形状を確認' });
+      gadgets.push({ name: 'eSIM / ポケットWi-Fi', note: '事前に設定しておく' });
+    }
+    if (st === 'outdoor') gadgets.push({ name: 'ヘッドライト', note: '予備電池も' });
+    if (st === 'resort') gadgets.push({ name: '防水スマホケース', note: '' });
+    if (nights >= 3 || ovs) gadgets.push({ name: '延長タップ（小型）', note: 'コンセントが少ない宿対策' });
+
+    var grooming = [
+      { name: '歯ブラシ・歯磨き粉', note: '' },
+      { name: '洗顔料', note: '' },
+      { name: 'オールインワンジェル / 化粧水', note: cold ? '冬の乾燥対策に保湿を厚めに' : '' },
+      { name: 'シェーバー', note: ovs ? '充電式は電圧を確認' : '' },
+      { name: '整髪料', note: '' },
+      { name: 'デオドラント / 汗拭きシート', note: '' }
+    ];
+    if (cold || mild) grooming.push({ name: 'リップクリーム', note: '' });
+    if (nights >= 5) grooming.push({ name: '爪切り', note: '機内持ち込みは刃渡りに注意' });
+    grooming.push({ name: 'メガネ / コンタクト用品', note: '使う人のみ' });
+
+    var health = [
+      { name: '常備薬（頭痛薬・胃腸薬）', note: '' },
+      { name: '絆創膏', note: st === 'outdoor' ? '靴ずれ用に多めに' : '' },
+      { name: 'マスク', note: '機内の乾燥対策にも' }
+    ];
+    if (warm || st !== 'city' || s === 'spring') health.push({ name: '日焼け止め', note: st === 'resort' ? 'ウォータープルーフ' : '' });
+    if (warm || st === 'outdoor') health.push({ name: '虫よけ', note: '' });
+    if (st !== 'city' || ovs) health.push({ name: '酔い止め', note: '船・バス・山道に' });
+    if (cold && st !== 'resort') health.push({ name: 'カイロ', note: '' });
+
+    var misc = [
+      { name: 'ハンカチ・ティッシュ', note: '' },
+      { name: 'ジップ袋', note: '小分け・濡れ物・液体物の機内持ち込み用' },
+      { name: 'エコバッグ', note: 'お土産や買い物に' }
+    ];
+    if (st !== 'outdoor') misc.push({ name: '折りたたみ傘', note: '晴雨兼用だと夏も便利' });
+    if (nights >= 3) misc.push({ name: '圧縮袋 / パッキングポーチ', note: '着用済みと分けて収納' });
+    if (laundry) misc.push({ name: '洗濯用洗剤（小分け）・洗濯ネット', note: '宿のランドリーやシンクで' });
+    if (ovs) {
+      misc.push({ name: 'ネックピロー・アイマスク', note: '長距離フライト用' });
+      misc.push({ name: 'ボールペン', note: '入国カード記入用' });
+    }
+    if (st === 'resort') misc.push({ name: '速乾タオル', note: 'ビーチ・プール用' });
+    if (st === 'outdoor') {
+      misc.push({ name: '水筒 / ボトル', note: '' });
+      misc.push({ name: '行動食', note: 'ナッツ・ようかんなど' });
+      misc.push({ name: 'ゴミ袋', note: '持ち帰り用' });
+      misc.push({ name: '地図のオフライン保存', note: '電波がない場所に備えて' });
+    }
+
+    function withQty(list) { return list.map(function (x) { x.qty = x.qty || 0; return x; }); }
+
+    return {
+      clothes: [
+        { id: 'tops', title: 'トップス', items: tops },
+        { id: 'bottoms', title: 'ボトムス', items: bottoms },
+        { id: 'outer', title: 'アウター', items: outer },
+        { id: 'shoes', title: '靴', items: shoes },
+        { id: 'acc', title: '小物', items: acc }
+      ],
+      others: [
+        { id: 'valuables', title: '貴重品・書類', items: withQty(valuables) },
+        { id: 'gadgets', title: '電子機器', items: withQty(gadgets) },
+        { id: 'grooming', title: '洗面・身だしなみ', items: withQty(grooming) },
+        { id: 'health', title: '衛生・健康', items: withQty(health) },
+        { id: 'misc', title: 'その他', items: withQty(misc) }
+      ],
+      rotation: makeRotation(days, tops, bottoms, laundry),
+      tips: makeTips(c, laundry, topsN),
+      palette: makePalette(st, s)
+    };
+  }
+
+  function makeRotation(days, tops, bottoms, laundry) {
+    function expand(list) {
+      var out = [];
+      list.forEach(function (it) {
+        if (!it.short) return;
+        for (var i = 0; i < it.qty; i++) out.push(it.short + (it.qty > 1 ? ' ' + String.fromCharCode(65 + i) : ''));
+      });
+      return out;
+    }
+    var T = expand(tops), B = expand(bottoms);
+    var rows = [];
+    for (var d = 0; d < days; d++) {
+      rows.push({
+        day: d + 1,
+        top: T[d % T.length],
+        bottom: B[d % B.length],
+        wash: laundry && d === T.length - 1
+      });
+    }
+    return rows;
+  }
+
+  function makeTips(c, laundry, topsN) {
+    var t = [];
+    t.push('色はネイビー・グレー・白・ベージュの4色に絞ると、どの組み合わせでも合います。');
+    t.push('一番かさばる服（アウター・厚手のボトムス・重い靴）は移動日に着ていくと荷物が減ります。');
+    if (c.style === 'city') t.push('シャツはボタンを留めれば主役、開ければ羽織りになる「一人二役」の服です。');
+    if (c.style === 'resort') t.push('リネンシャツは昼はTシャツの上に羽織り、夜はボタンを留めてディナーに。');
+    if (c.style === 'outdoor') t.push('ベース（速乾）・ミドル（フリース）・アウター（シェル）の3層で、脱ぎ着して体温調整を。');
+    if (c.season === 'winter') t.push('厚手ニットを何枚も持つより、薄手インナー＋インナーダウンで調整する方が軽く済みます。');
+    if (c.season === 'summer') t.push('汗をかく季節は、乾きやすい素材を選ぶと宿で洗って翌日また着られます。');
+    if (laundry) t.push('4泊以上なので、トップス' + topsN + '枚を着回し、途中で1回洗濯する計画にしています。');
+    if (c.dest === 'overseas') t.push('機内は冷えるので、羽織りものは手荷物に入れておきましょう。');
+    return t;
+  }
+
+  function makePalette(st, s) {
+    var p = [['#1f2a44', 'ネイビー'], ['#8c8f94', 'グレー'], ['#f6f4ef', 'ホワイト'], ['#c9b596', 'ベージュ']];
+    if (st === 'outdoor') p = [['#3e4a3a', 'オリーブ'], ['#2b2f35', 'チャコール'], ['#8c8f94', 'グレー'], ['#b0643a', 'テラコッタ']];
+    else if (st === 'resort') p = [['#f6f4ef', 'ホワイト'], ['#a9c1d9', 'サックス'], ['#d8c7a8', 'サンド'], ['#1f2a44', 'ネイビー']];
+    else if (s === 'autumn' || s === 'winter') p = [['#1f2a44', 'ネイビー'], ['#3b3a38', 'チャコール'], ['#7a5a3a', 'ブラウン'], ['#e9e2d4', 'オフホワイト']];
+    return p;
+  }
+
+  // ---------- rendering ----------
+  var result = document.getElementById('result');
+  var form = document.getElementById('form');
+  var hideDone = store.get('pl:hideDone', false);
+  var current = null; // { key, checked: {} }
+
+  function readForm() {
+    var fd = new FormData(form);
+    return {
+      dest: fd.get('dest'),
+      nights: parseInt(fd.get('nights'), 10),
+      season: fd.get('season'),
+      style: fd.get('style')
+    };
+  }
+
+  function renderGroup(g, prefix) {
+    if (!g.items.length) return '';
+    var html = '<section class="card group" data-group="' + g.id + '">' +
+      '<div class="group-head"><h3>' + esc(g.title) + '</h3><span class="count"></span></div><ul class="items">';
+    g.items.forEach(function (it) {
+      var id = prefix + ':' + g.id + ':' + it.name;
+      var checked = !!current.checked[id];
+      html += '<li' + (checked ? ' class="is-done"' : '') + '><label class="item' + (checked ? ' checked' : '') + '">' +
+        '<input type="checkbox" data-id="' + esc(id) + '"' + (checked ? ' checked' : '') + '>' +
+        '<span class="body"><span class="name"><span>' + esc(it.name) + '</span>' +
+        (it.qty ? '<span class="qty">× ' + it.qty + '</span>' : '') + '</span>' +
+        (it.note ? '<span class="note">' + esc(it.note) + '</span>' : '') +
+        '</span></label></li>';
+    });
+    return html + '</ul></section>';
+  }
+
+  function render() {
+    var c = readForm();
+    store.set('pl:last', c);
+    var key = 'pl:checks:' + [c.dest, c.nights, c.season, c.style].join('-');
+    current = { key: key, checked: store.get(key, {}) };
+
+    document.getElementById('nightsNote').textContent = c.nights + '泊' + (c.nights + 1) + '日';
+
+    var data = build(c);
+    var html = '';
+
+    html += '<div class="summary">' +
+      '<span class="tag">' + LABEL.dest[c.dest] + '</span>' +
+      '<span class="tag">' + c.nights + '泊' + (c.nights + 1) + '日</span>' +
+      '<span class="tag">' + LABEL.season[c.season] + '</span>' +
+      '<span class="tag">' + LABEL.style[c.style] + '</span></div>' +
+      '<div class="tools">' +
+      '<button type="button" class="btn" id="toggleDone" aria-pressed="' + hideDone + '">未チェックのみ表示</button>' +
+      '<button type="button" class="btn" id="reset">チェックをリセット</button>' +
+      '</div>' +
+      '<div class="progress" id="progress">' +
+      '<div class="progress-row"><span>パッキング進捗</span><strong id="progText"></strong></div>' +
+      '<div class="bar"><span id="progBar"></span></div></div>';
+
+    html += '<div id="lists"' + (hideDone ? ' class="hide-done"' : '') + '>';
+    html += '<h2 class="section-title">服 — 着回しプラン</h2>';
+    html += '<p class="lead-note">枚数は移動日の着用分を含みます。</p>';
+    data.clothes.forEach(function (g) { html += renderGroup(g, 'c'); });
+    html += '<h2 class="section-title">服以外の持ち物</h2>';
+    data.others.forEach(function (g) { html += renderGroup(g, 'o'); });
+    html += '</div>';
+
+    // rotation
+    html += '<h2 class="section-title">コーディネート例</h2><div class="card">' +
+      '<p class="sub">持っていくトップスとボトムスの組み合わせ例です。</p>' +
+      '<table class="rotation"><thead><tr><th>日</th><th>トップス</th><th>ボトムス</th></tr></thead><tbody>';
+    data.rotation.forEach(function (r) {
+      html += '<tr><td>' + r.day + '日目</td><td>' + esc(r.top) + '</td><td>' + esc(r.bottom) +
+        (r.wash ? '<span class="wash">夜に洗濯</span>' : '') + '</td></tr>';
+    });
+    html += '</tbody></table></div>';
+
+    // tips
+    html += '<h2 class="section-title">着回しのコツ</h2><div class="card">' +
+      '<p class="sub">おすすめの配色</p><div class="palette">';
+    data.palette.forEach(function (p) {
+      html += '<span class="swatch"><i style="background:' + p[0] + '"></i>' + esc(p[1]) + '</span>';
+    });
+    html += '</div><hr style="border:0;border-top:1px solid var(--line);margin:14px 0">' +
+      '<ul class="tips">' + data.tips.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul></div>';
+
+    result.innerHTML = html;
+    updateProgress();
+  }
+
+  function updateProgress() {
+    var boxes = result.querySelectorAll('#lists input[type=checkbox]');
+    var done = 0;
+    boxes.forEach(function (b) { if (b.checked) done++; });
+    var pct = boxes.length ? Math.round(done / boxes.length * 100) : 0;
+    document.getElementById('progText').textContent = done + ' / ' + boxes.length + (done === boxes.length && done ? '　準備完了' : '');
+    document.getElementById('progBar').style.width = pct + '%';
+
+    result.querySelectorAll('.group').forEach(function (g) {
+      var all = g.querySelectorAll('input'), n = 0;
+      all.forEach(function (b) { if (b.checked) n++; });
+      g.querySelector('.count').textContent = n + ' / ' + all.length;
+      g.classList.toggle('all-done', n === all.length);
+    });
+  }
+
+  // ---------- events ----------
+  form.addEventListener('change', render);
+
+  result.addEventListener('change', function (e) {
+    var el = e.target;
+    if (!el.matches('input[type=checkbox]')) return;
+    var id = el.getAttribute('data-id');
+    if (el.checked) current.checked[id] = 1; else delete current.checked[id];
+    store.set(current.key, current.checked);
+    el.closest('.item').classList.toggle('checked', el.checked);
+    // Delay hiding so the user sees the check before the row disappears.
+    var li = el.closest('li');
+    setTimeout(function () { li.classList.toggle('is-done', el.checked); updateProgress(); }, hideDone && el.checked ? 350 : 0);
+    if (!(hideDone && el.checked)) updateProgress();
+  });
+
+  result.addEventListener('click', function (e) {
+    if (e.target.id === 'toggleDone') {
+      hideDone = !hideDone;
+      store.set('pl:hideDone', hideDone);
+      e.target.setAttribute('aria-pressed', hideDone);
+      document.getElementById('lists').classList.toggle('hide-done', hideDone);
+    } else if (e.target.id === 'reset') {
+      if (!confirm('この条件のチェックをすべて外しますか？')) return;
+      current.checked = {};
+      store.set(current.key, {});
+      render();
+    }
+  });
+
+  // ---------- restore last conditions ----------
+  var last = store.get('pl:last', null);
+  if (last) {
+    ['dest', 'nights', 'season', 'style'].forEach(function (k) {
+      var el = form.querySelector('input[name="' + k + '"][value="' + last[k] + '"]');
+      if (el) el.checked = true;
+    });
+  }
+  render();
+})();
+</script>
+</body>
+</html>
